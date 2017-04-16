@@ -102,6 +102,14 @@ def play_song(music_info):
     mixer.music.play()
 
 
+def pause_music():
+    mixer.music.pause()
+
+
+def unpause_music():
+    mixer.music.unpause()
+
+
 def print_info(music_info):
     music_info.complement_info()
     if music_info.title:
@@ -118,6 +126,10 @@ def wait_for_command_or_timeout(seconds):
             key = msvcrt.getch().upper()
             if key == b'N':
                 break
+            elif key == b'P':
+                pause_music()
+            elif key == b'C':
+                unpause_music()
             elif key == b'Q':
                 exit()
         elif time.time() - start_time > seconds:
@@ -128,7 +140,7 @@ def wait_for_command_or_timeout(seconds):
 @begin.start
 def main(folder: "Music folder"):
     print(colorize_text("{} V{}".format(_name, _version)))
-    print(colorize_text("[N]ext\t[Q]uit"))
+    print(colorize_text("[N]ext  [P]ause  [C]ontinue  [Q]uit"))
     all_songs = find_all_songs(folder)
     while True:
         song = select_song(all_songs)
