@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 import begin
 from colorama import Fore, Back, Style, init
+from datetime import datetime
 import musicbrainzngs as brainz
 from mutagen.mp3 import MP3
 import msvcrt
@@ -121,14 +122,17 @@ def print_info(music_info):
 def wait_for_command_or_timeout(seconds):
     'Wait for a valid command or timeout until finishes'
     start_time = time.time()
+    paused = False
     while True:
         if msvcrt.kbhit():
             key = msvcrt.getch().upper()
             if key == b'N':
                 break
-            elif key == b'P':
+            elif key == b'P' and not paused:
+                paused = True
                 pause_music()
-            elif key == b'C':
+            elif key == b'C' and paused:
+                paused = False
                 unpause_music()
             elif key == b'Q':
                 exit()
@@ -137,13 +141,22 @@ def wait_for_command_or_timeout(seconds):
         time.sleep(0.5)
 
 
+def log_text(text):
+    filename = 'log.txt'
+    with open(filename, 'a' if os.path.exists(filename) else 'w') as f:
+        f.write('[{}] {}\n'.format(
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text))
+
+
 @begin.start
-def main(folder: "Music folder"):
-    print(colorize_text("{} V{}".format(_name, _version)))
+def main(folder: "Music folder", log=False):
+    print(colorize_text("{} v{}".format(_name, _version)))
     print(colorize_text("[N]ext  [P]ause  [C]ontinue  [Q]uit"))
     all_songs = find_all_songs(folder)
     while True:
         song = select_song(all_songs)
         print(colorize_text("Playing '{}'".format(song.filename)))
         play_song(song)
+        if log:
+            log_text(song.complete_path)
         wait_for_command_or_timeout(song.length)
