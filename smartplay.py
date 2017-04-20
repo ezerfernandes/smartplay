@@ -119,13 +119,16 @@ def print_info(music_info):
         print(colorize_text("* " + a))
 
 
-def restart_music():
+def restart_music(original_length):
+    global duration
     unpause_music()
     mixer.music.rewind()
+    duration = original_length
 
 
-def wait_for_command_or_timeout(seconds):
+def wait_for_command_or_timeout(length):
     'Wait for a valid command or timeout until finishes'
+    global duration
     start_time = time.time()
     paused = False
     while True:
@@ -141,10 +144,10 @@ def wait_for_command_or_timeout(seconds):
                 unpause_music()
             elif key == b'R':
                 paused = False
-                restart_music()
+                restart_music(length)
             elif key == b'Q':
                 exit()
-        elif time.time() - start_time > seconds:
+        elif time.time() - start_time > duration:
             break
         time.sleep(0.5)
 
@@ -158,13 +161,15 @@ def log_text(text):
 
 @begin.start
 def main(folder: "Music folder", log=False):
+    global duration
     print(colorize_text("{} v{}".format(_name, _version)))
     print(colorize_text("[N]ext  [P]ause  [C]ontinue  [R]estart  [Q]uit"))
     all_songs = find_all_songs(folder)
     while True:
         song = select_song(all_songs)
+        duration = song.length
         print(colorize_text("Playing '{}'".format(song.filename)))
         play_song(song)
         if log:
             log_text(song.complete_path)
-        wait_for_command_or_timeout(song.length)
+        wait_for_command_or_timeout(duration)
